@@ -25,3 +25,31 @@ if grep -Eq "^BR2_PACKAGE_BUSYBOX=y$" ${BR2_CONFIG}; then
 	cp ${MODULES_DIR}/../libGAL.so ${TARGET_DIR}/usr/lib/
 	cp ${MODULES_DIR}/../modules.sh ${TARGET_DIR}/etc/profile.d/
 fi
+
+OVERLAY_DIR=./overlay
+
+GUIDEMO_DIR=./custom/MA35_Family_Linux_emWin_64bit_Package_20240618/Sample/GUIDemo
+SIMPLEDEMO_DIR=./custom/MA35_Family_Linux_emWin_64bit_Package_20240618/Sample/SimpleDemo
+SIMPLEDEMOAPPWIZARD_DIR=./custom/MA35_Family_Linux_emWin_64bit_Package_20240618/Sample/SimpleDemoAppWizard
+
+make -C $GUIDEMO_DIR
+if [ -f "$GUIDEMO_DIR/GUIDemo" ]; then
+	chmod -R 777 $GUIDEMO_DIR/GUIDemo
+	cp $GUIDEMO_DIR/GUIDemo $OVERLAY_DIR/user_data/GUIDemo
+fi
+
+make -C $SIMPLEDEMO_DIR
+if [ -f "$SIMPLEDEMO_DIR/SimpleDemo" ]; then
+	chmod -R 777 $SIMPLEDEMO_DIR/SimpleDemo
+        cp $SIMPLEDEMO_DIR/SimpleDemo $OVERLAY_DIR/user_data/SimpleDemo
+fi
+
+make -C $SIMPLEDEMOAPPWIZARD_DIR
+if [ -f "$SIMPLEDEMOAPPWIZARD_DIR/SimpleDemoAppWizard" ]; then
+	chmod -R 777 $SIMPLEDEMOAPPWIZARD_DIR/SimpleDemoAppWizard
+        cp $SIMPLEDEMOAPPWIZARD_DIR/SimpleDemoAppWizard $OVERLAY_DIR/user_data/SimpleDemoAppWizard
+fi
+
+rsync -a --exclude='.empty' --exclude='*~' $OVERLAY_DIR/ $TARGET_DIR/
+
+echo "Overlays applied after post-build."
