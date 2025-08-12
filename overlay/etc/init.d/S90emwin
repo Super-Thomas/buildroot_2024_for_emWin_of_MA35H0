@@ -29,7 +29,7 @@ start() {
                 insmod /lib/modules/`uname -r`/galcore.ko
         fi
 
-        ##if [[ ! -f "$TSLIB_CALIBFILE" ]]; then ts_calibrate; fi
+        if [[ ! -f "$TSLIB_CALIBFILE" ]]; then ts_calibrate; fi
 
         start-stop-daemon -b -S -q -x "$EXECUTABLE"
         status=$?
