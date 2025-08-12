@@ -1,0 +1,90 @@
+Non-OS Part:
+0. MA35_Family_emWin_NonOS.zip: Nuvoton MA35 family emWin HMI.
+1. MA35 family BSP download links:
+MA35D1 series: https://github.com/OpenNuvoton/MA35D1_NonOS_BSP
+MA35H0 series: https://github.com/OpenNuvoton/MA35H0_NonOS_BSP
+MA35D0 series: https://github.com/OpenNuvoton/MA35D0_NonOS_BSP
+Please refer to the related documents at "BSP\Document" folder for more details.
+
+RT-Thread Part:
+0. MA35_Family_RTThread_emWin_Package.zip.
+1. Please refer to the link "https://github.com/wosayttn/NUemWin" for more details.
+
+Linux Part:
+0. MA35_Family_Linux_emWin_64bit_Package_20240618.tar.gz: Nuvoton MA35 family Linux emWin HMI.
+
+Before make:
+1.Please to get the latest environment from OpenNuvoton:
+    -> https://www.nuvoton.com/resource-download.jsp?tp_GUID=SW182022101516122042
+2.How to build the images of Linux kernel and program the files to EVB via NuWriter,please search the keywords:
+    "MA35D1 Buildroot Quick Start Guide"
+    "MA35H0 Buildroot Quick Start Guide"
+    "MA35D0 Buildroot Quick Start Guide"
+    in the NuForum: http://forum.nuvoton.com/viewforum.php?f=49
+
+1. Build Environment: (Linux)
+
+    (1) Unzip package file
+        $ tar zxf MA35_Family_Linux_emWin_64bit_Package_20240618.tar.gz
+
+    (2) Change access rights
+        $ sudo find MA35_Family_Linux_emWin_64bit_Package_20240618 -type d -exec chmod 755 {} +
+        $ find MA35_Family_Linux_emWin_64bit_Package_20240618 -type f -exec chmod 644 {} +
+
+    (3) Go to example file: MA35_Family_Linux_emWin_64bit_Package_20240618/Simple/[projectName]/
+        Then check the content of "Makefile": Whether the toolchain exists?
+        /home/user/buildroot/MA35D1_Buildroot/output/host/bin/aarch64-nuvoton-linux-gnu-gcc
+        /home/user/buildroot/MA35D1_Buildroot/output/host/bin/aarch64-nuvoton-linux-gnu-strip
+        *If no:
+        (3.1) Go Docker environment
+            $ cd MA35D1_Docker_Script
+            $ ./join.sh
+        (3.2) Make configuration
+            $ cd shard/buildroot/MA35D1_Buildroot/
+            $ make numaker_som_ma35d16a81_defconfig
+            $ make
+        (3.3) Make sure that the path is matched with "Makefile".
+        (3.4) Out of Docker
+
+        *Check whether libts files exist: (it's necessary for using touch screen)
+        $ cd /buildroot
+        $ find -name libts.*
+
+    (4) Open Terminal in Sample file (../Sample/SimpleDemoAppWizard),
+        run the "Makefile" and build one binary file SimpleDemoAppWizard.
+            $ make
+        -> Same as above, run the "Makefile" of /GUIDemo and /SimpleDemo, too.
+        -> Utilize "GUI_NUMBYTES" in "GUIConf2.c" to adjust size of emWin memory pool. (Default: 32 * 1024 * 1024, unit is byte)
+        *Notice: Before rerun Makefile, please clean the record first.
+            $ make clean
+
+    (5) Move the built files: SimpleDemoAppWizard, GUIDemo, SimpleDemo, and ts.conf to windows.
+        Then, copy files to USB Pen Drive.
+
+2. Host Environment: (MA35 Family)
+
+    (1) Power up the board and log-in by root.
+    (2) Mount USB Pen Drive (with FAT filesystem)
+        $ mount /dev/sda1 /mnt
+        $ cd /mnt
+        -> For the error message "unknown filesystem type 'ntfs' ", please change to use a micro SD card and card reader.
+
+    (3) Set environment variables for tslib touch feature.
+        (3.1) Copy ts.conf to /etc/ (*ONLY ONCE*)
+            $ cp /mnt/ts.conf /etc/
+            $ sync
+        (3.2) Set the environment variables
+            $ export TSLIB_CONFFILE=/etc/ts.conf
+            $ export TSLIB_TSDEVICE=/dev/input/event0
+        (3.3) Do touch calibration before to utilize tslib touch feature (*ONLY ONCE*)
+            $ /usr/bin/ts_calibrate
+
+    (4) Execute file
+        $ ./SimpleDemoAppWizard
+        -> Same as above, excute other file by "$ ./[fileName]"
+
+    (5) Ctrl+C to exit from application
+        *Un-mount USB device:
+            $ cd /
+            $ umount /mnt
+            $ sync
